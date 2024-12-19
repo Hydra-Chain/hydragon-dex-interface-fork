@@ -14,6 +14,8 @@ import {
   getIsInjected,
   getIsMetaMaskWallet,
 } from 'connection/utils'
+import { HYDRACHAIN_PRIVACY_POLICY_URL } from 'constants/chainInfo'
+import { SupportedChainId } from 'constants/chains'
 import usePrevious from 'hooks/usePrevious'
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft } from 'react-feather'
@@ -24,6 +26,7 @@ import { updateSelectedWallet } from 'state/user/reducer'
 import { useConnectedWallets } from 'state/wallets/hooks'
 import styled from 'styled-components/macro'
 import { flexColumnNoWrap, flexRowNoWrap } from 'theme/styles'
+import { switchChain } from 'utils/switchChain'
 import { isMobile } from 'utils/userAgent'
 
 import { ReactComponent as Close } from '../../assets/images/x.svg'
@@ -202,7 +205,11 @@ export default function WalletModal({
 
   // Keep the network connector in sync with any active user connector to prevent chain-switching on wallet disconnection.
   useEffect(() => {
-    if (chainId && connector !== networkConnection.connector) {
+    if (!chainId) return
+    // SAMI: Auto switch to testnet if not devnet or testnet (disable or add networks if needed)
+    if (chainId != SupportedChainId.DEVNET && chainId != SupportedChainId.TESTNET) {
+      switchChain(connector, SupportedChainId.MAINNET)
+    } else if (connector !== networkConnection.connector) {
       networkConnection.connector.activate(chainId)
     }
   }, [chainId, connector])
@@ -329,9 +336,10 @@ export default function WalletModal({
 
       const content = (
         <Trans>
-          By connecting a wallet, you agree to Uniswap Labs’{' '}
-          <ExternalLink href="https://uniswap.org/terms-of-service/">Terms of Service</ExternalLink> and consent to its{' '}
-          <ExternalLink href="https://uniswap.org/privacy-policy">Privacy Policy</ExternalLink>.
+          By connecting a wallet, you agree to LockTrip LLC{' '}
+          {/* VITO: updated privacy policy and removed terms of service for now */}
+          {/* <ExternalLink href="https://uniswap.org/terms-of-service/">Terms of Service</ExternalLink> and consent to its{' '} */}
+          <ExternalLink href={HYDRACHAIN_PRIVACY_POLICY_URL}>Privacy Policy</ExternalLink>.
         </Trans>
       )
       return (
